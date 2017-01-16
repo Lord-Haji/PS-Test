@@ -297,7 +297,7 @@ exports.Formats = [
 		column: 2,
 	},
 	{
-		name: "[Gen 7] Balanced Hackmons (suspect test)",
+		name: "[Gen 7] Balanced Hackmons",
 		desc: [
 			"Anything that can be hacked in-game and is usable in local battles is allowed.",
 			"&bullet; <a href=\"https://www.smogon.com/forums/threads/3587475/\">Balanced Hackmons</a>",
@@ -430,7 +430,7 @@ exports.Formats = [
 		},
 	},
 	{
-		name: "[Gen 7] Sketchmons",
+		name: "[Gen 7] Sketchmons (suspect test)",
 		desc: [
 			"Pok&eacute;mon gain access to one Sketched move.",
 			"&bullet; <a href=\"https://www.smogon.com/forums/threads/3587743/\">Sketchmons</a>",
@@ -440,7 +440,7 @@ exports.Formats = [
 		ruleset: ['Pokemon', 'Standard', 'Team Preview', 'Baton Pass Clause'],
 		banlist: ['Allow One Sketch',
 			'Aegislash', 'Arceus', 'Blaziken', 'Darkrai', 'Deoxys', 'Dialga', 'Genesect', 'Giratina', 'Groudon', 'Ho-Oh', 'Kyogre', 'Kyurem-White',
-			'Lugia', 'Lunala', 'Mewtwo', 'Palkia', 'Rayquaza', 'Reshiram', 'Shaymin-Sky', 'Solgaleo', 'Xerneas', 'Yveltal', 'Zekrom',
+			'Landorus-Base', 'Lugia', 'Lunala', 'Mewtwo', 'Palkia', 'Rayquaza', 'Reshiram', 'Shaymin-Sky', 'Solgaleo', 'Xerneas', 'Yveltal', 'Zekrom',
 			'Power Construct', 'Shadow Tag', 'Gengarite', 'Kangaskhanite', 'Lucarionite', 'Salamencite',
 			'Arena Trap + Dark Void', 'Arena Trap + Grass Whistle', 'Arena Trap + Hypnosis', 'Arena Trap + Relic Song', 'Arena Trap + Sing', 'Arena Trap + Sleep Powder',
 		],
@@ -478,7 +478,7 @@ exports.Formats = [
 		mod: 'gen7',
 		gameType: 'doubles',
 		searchShow: false,
-		ruleset: ['[Gen 7] Balanced Hackmons (suspect test)'],
+		ruleset: ['[Gen 7] Balanced Hackmons'],
 		banlist: [],
 	},
 	{
