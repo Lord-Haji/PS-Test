@@ -2,7 +2,7 @@
  * This is a chat-plugin for an Emoticons system on PS
  * You will need a line in command-parser.js to actually
  * parse this so that it works.  Also, you will need to
- * add a few lines to the PM command (commands.js).
+ * add a few lines to the PM command (chat.js).
  * Credits: panpawn, jd
  */
 'use strict';
@@ -17,7 +17,7 @@ Gold.emoticons = {
 	chatEmotes: {}, // holds the emoticons, to be merged with json later on
 
 	// handles replacing emoticon messages with the HTML and then PS formats message
-	// this is also used for the PM command (located in commands.js)
+	// this is also used for the PM command (located in chat.js)
 	processEmoticons: function (text) {
 		let patterns = [], metachars = /[[\]{}()*+?.\\|^$\-,&#\s]/g;
 
@@ -100,12 +100,11 @@ Gold.emoticons = {
 // commands
 
 function loadEmotes() {
-	try {
-		emotes = fs.readFileSync('config/emotes.json', 'utf8');
-		Object.assign(Gold.emoticons.chatEmotes, JSON.parse(emotes));
-	} catch (e) {
-		Rooms('staff').add('Failure to load emoticons: ' + e.stack).update();
-	}
+	fs.readFile('config/emotes.json', 'utf8', function (err, file) {
+		if (err) return;
+		Gold.emoticons.chatEmotes = JSON.parse(file);
+		emotes = Gold.emoticons.chatEmotes;
+	});
 }
 setTimeout(function () {
 	loadEmotes();
@@ -113,9 +112,11 @@ setTimeout(function () {
 
 function saveEmotes() {
 	try {
-		fs.writeFileSync('config/emotes.json', emotes);
 		Object.assign(Gold.emoticons.chatEmotes, emotes);
-	} catch (e) {}
+		fs.writeFileSync('config/emotes.json', JSON.stringify(emotes));
+	} catch (e) {
+		Rooms('staff').add('Emoticons have failed to save: ' + e.stack).update();
+	}
 }
 
 exports.commands = {
@@ -147,7 +148,7 @@ exports.commands = {
 				saveEmotes();
 				this.sendReply(`The emoticon ${emoteName} has been added.`);
 				this.logModCommand(`${user.name} added the emoticon: ${emoteName}`);
-				Rooms.get('staff').add(`The emoticon ${emoteName} was added by ${Chat.escapeHTML(user.name)}.`).update();
+				Rooms('staff').add(`The emoticon "${emoteName}" was added by ${user.name}.`).update();
 				break;
 
 			case 'rem':
@@ -164,7 +165,7 @@ exports.commands = {
 				saveEmotes();
 				this.sendReply(`The emoticon ${emoteName2} has been removed.`);
 				this.logModCommand(`${user.name} removed the emoticon: ${emoteName2}`);
-				Rooms.get('staff').add(`The emoticon ${emoteName2} was removed by ${Chat.escapeHTML(user.name)}.`).update();
+				Rooms('staff').add(`The emoticon "${emoteName2}" was removed by ${user.name}.`).update();
 				break;
 
 			case 'list':

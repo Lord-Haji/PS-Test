@@ -279,7 +279,7 @@ class Connection {
 
 		this.ip = ip || '';
 		this.protocol = protocol || '';
-		this.headers = (headers ? JSON.parse(headers) : {});
+		this.headers = headers ? JSON.parse(headers) : {};
 
 		this.autojoin = '';
 	}
@@ -365,6 +365,7 @@ class User {
 		//       wrong. Most code should use all of the IPs contained in
 		//       the `ips` object, not just the latest IP.
 		this.latestIp = connection.ip;
+		this.useragent = connection.headers && connection.headers['user-agent'] ? connection.headers['user-agent'] : '';
 		this.locked = false;
 		this.namelocked = false;
 		this.prevNames = Object.create(null);
@@ -976,7 +977,9 @@ class User {
 			this.namelocked = false;
 		}
 		if (this.autoconfirmed && this.semilocked) {
-			if (this.semilocked === '#dnsbl') {
+			if (this.semilocked.startsWith('#sharedip')) {
+				this.semilocked = false;
+			} else if (this.semilocked === '#dnsbl') {
 				this.popup(`You are locked because someone using your IP has spammed/hacked other websites. This usually means you're using a proxy, in a country where other people commonly hack, or have a virus on your computer that's spamming websites.`);
 				this.semilocked = '#dnsbl.';
 			}

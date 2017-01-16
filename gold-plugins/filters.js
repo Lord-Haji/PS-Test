@@ -123,10 +123,6 @@ Config.namefilter = function (name, user) {
 		});
 	});
 
-	if (user.connections[conNum].headers && user.connections[conNum].headers['user-agent']) {
-		user.useragent = user.connections[conNum].headers['user-agent'];
-	}
-
 	Gold.evadeMonitor(user, name);
 
 	return name;
@@ -160,8 +156,7 @@ function saveHost() {
 
 
 Gold.evadeMonitor = function (user, name, punished) {
-	let punishments = this.punishments;
-	if (punished && punished.alts) {
+	if (punished && punished.alts) { // handles when user is unlocked
 		punished.alts.forEach(alt => {
 			if (Gold.punishments[toId(alt)]) delete Gold.punishments[toId(alt)];
 		});
@@ -169,52 +164,77 @@ Gold.evadeMonitor = function (user, name, punished) {
 		return;
 	}
 	let points = 0;
-	let num = Object.keys(user.connections).length - 1;
-	let userAgent = user.useragent ? user.useragent : '';
-	let ip = user.connections[num].ip;
+	let matched = false;
+	let userAgent = user.useragent;
+	let ip = user.latestIp;
 
 	if (punished) {
-		punishments[user.userid] = {
-			'useragent': userAgent,
-			'ip': ip,
-			'iprange': Gold.getIpRange(ip)[0],
-			'ipclass': Gold.getIpRange(ip)[1],
-			'type': punished.type,
-			'exires': punished.expires,
-		};
-		Gold.savePunishments();
+		let tarId = toId(name); // since user.userid can be a guest number here...
+		Object.keys(Gold.punishments).forEach(punished => {
+			if (Gold.punishments[punished].ip === ip) matched = true;
+		});
+		if (!matched && !Gold.punishments[tarId]) {
+			Gold.punishments[tarId] = {
+				'useragent': userAgent,
+				'ip': ip,
+				'iprange': Gold.getIpRange(ip)[0],
+				'ipclass': Gold.getIpRange(ip)[1],
+				'type': punished.type,
+				'exires': punished.expires,
+			};
+			Gold.savePunishments();
+		}
 	} else {
 		if (user.locked || Users.ShadowBan.checkBanned(user) || trustedHack(name)) return;
 
-		let ipRange = Gold.getIpRange(ip)[0];
 		let reasons = [];
-		let evader = '';
+		let evader = '', offender = '', reason = '';
 		let alertStaff = false;
 		let defaultAvatars = [1, 2, 101, 102, 169, 170, 265, 266];
-		Object.keys(punishments).forEach(offender => {
-			if (punishments[offender].exires < Date.now()) return;
-			if (punishments[offender].useragent === userAgent) {
-				points++;
-				reasons.push(`have the same user agent`);
-				evader = punishments[offender].type + ' user: ' + offender;
-				alertStaff = true;
+		let punishedUsers = Object.keys(Gold.punishments);
+
+		for (let i = 0; i < punishedUsers.length; i++) {
+			offender = Gold.punishments[punishedUsers[i]];
+			if (offender.ip === ip) break;
+			if (reasons.length >= 3) break; // this should never happen
+			if (offender.exires < Date.now()) {
+				delete Gold.punishments[punishedUsers[i]];
+				Gold.savePunishments();
 			}
-			if (punishments[offender].iprange && ip.startsWith(punishments[offender].iprange)) {
-				points++;
-				reasons.push(`have the IPv4 class ${punishments[offender].ipclass} range (${ipRange}.*)`);
-				evader = punishments[offender].type + ' user: ' + offender;
+			if (offender.useragent && offender.useragent === userAgent) {
+				reason = `have the same user agent`;
+				if (!reasons.includes(reason)) {
+					points++;
+					reasons.push(reason);
+					evader = `${offender.type} user: ${punishedUsers[i]}`;
+					alertStaff = true;
+				}
 			}
-			// this does not count AS a reason, but merely to add to the list of reasons
+			if (offender.iprange && ip.startsWith(offender.iprange)) {
+				reason = `have the IPv4 class ${offender.ipclass} range (${offender.iprange}.*)`;
+				if (!reasons.includes(reason)) {
+					points++;
+					reasons.push(reason);
+					evader = `${offender.type} user: ${punishedUsers[i]}`;
+				}
+			}
+			// this does not count AS a reason (points), but merely to add to the list of reasons
 			if (defaultAvatars.includes(user.avatar)) {
-				reasons.push(`have a default avatar`);
+				reason = `have a default avatar`;
+				if (!reasons.includes(reason)) {
+					reasons.push(reason);
+					points = points + 0.5;
+				}
 			}
-		});
+		}
 		let staff = Rooms('staff');
-		if (points >= 2) {
-			Users.ShadowBan.addUser(name);
-			if (staff) staff.add(`[EvadeMonitor] SHADOWBANNED: ${name}, evading alt of ${evader} because they ${reasons.join(' and ')}`).update();
-		} else if (alertStaff) {
-			if (staff) staff.add(`[EvadeMonitor] SUSPECTED EVADER: ${name} is possibly an evading alt of ${evader} because they ${reasons.join(' and ')}.`).update();
+		if (staff) {
+			if (points >= 2) {
+				Users.ShadowBan.addUser(name);
+				staff.add(`[EvadeMonitor] SHADOWBANNED: ${name}, evading alt of ${evader} because they ${reasons.join(' and ')}`).update();
+			} else if (points === 1.5) {
+				staff.add(`[EvadeMonitor] SUSPECTED EVADER: ${name} is possibly an evading alt of ${evader} because they ${reasons.join(' and ')}.`).update();
+			}
 		}
 	}
 };

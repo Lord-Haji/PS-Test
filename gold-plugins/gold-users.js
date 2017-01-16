@@ -116,7 +116,8 @@ try {
 			user = toId(user);
 			if (user === 'constructor') return 0;
 			let data = this.checkExisting(user);
-			return data.money;
+			if (data) return data.money;
+			return 0;
 		},
 		moneyCirculating: function () {
 			let data = Object.keys(Gold.userData);
@@ -172,6 +173,7 @@ try {
 		 *******************/
 		hasVip: function (user) {
 			user = toId(user);
+			if (user.startsWith('guest')) return [];
 			let data = this.checkExisting(user);
 			if (!data.badges) data.badges = [];
 			let vip = data.badges.includes('vip');
@@ -270,13 +272,16 @@ try {
 			if (action === 'ADD' && !data.autojoin.includes(room)) {
 				if (!Rooms(room)) return false;
 				data.autojoin.push(room);
+				this.saveData();
 			} else if (action === 'REMOVE' && data.autojoin.includes(room)) {
 				data.autojoin.splice(data.autojoin.indexOf(room), 1);
+				this.saveData();
 			}
-			this.saveData();
 		},
 		getAutoJoin: function (user) {
 			try {
+				user = toId(user);
+				if (user.startsWith('guest')) return false;
 				let data = this.checkExisting(user);
 				if (data.autojoin && data.autojoin.length > 0) {
 					return data.autojoin;

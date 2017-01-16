@@ -248,7 +248,11 @@ let mainCustomColors = {
 // hashColor function
 function hashColor(name) {
 	name = toId(name);
-	if (customColors[name]) return customColors[name];
+	if (name === 'constructor') return '';
+	if (customColors[name]) {
+		let customHex = customColors[name].startsWith('#') ? customColors[name] : '#' + customColors[name];
+		return customHex;
+	}
 	if (mainCustomColors[name]) name = mainCustomColors[name];
 	if (colorCache[name]) return colorCache[name];
 	let hash = MD5(name);
