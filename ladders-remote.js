@@ -8,7 +8,7 @@
  * Ladders for all other servers is handled by ladders.js.
  *
  * Matchmaking is currently still implemented in rooms.js.
- *
+ 
  * @license MIT license
  */
 
